@@ -1,0 +1,33 @@
+# Elysian Dashboard Requirements
+# This file lists all required dependencies for the Elysian Dashboard project
+
+# Core React Dependencies
+react>=18.3.1
+react-dom>=18.3.1
+
+# Material-UI Components and Styling
+@emotion/react>=11.14.0
+@emotion/styled>=11.14.1
+@mui/material>=7.2.0
+@mui/icons-material>=7.2.0
+@mui/x-data-grid>=8.6.0
+
+# Supabase Integration
+@supabase/supabase-js>=2.50.3
+@supabase/auth-ui-react>=0.4.7
+@supabase/auth-ui-shared>=0.1.8
+
+# Development Dependencies
+@eslint/js>=9.29.0
+@types/react>=19.1.8
+@types/react-dom>=19.1.6
+@vitejs/plugin-react>=4.5.2
+eslint>=9.29.0
+eslint-plugin-react-hooks>=5.2.0
+eslint-plugin-react-refresh>=0.4.20
+globals>=16.2.0
+vite>=7.0.0
+
+# Build and Development Tools
+# Node.js (version 18 or higher recommended)
+# npm or yarn package manager 
