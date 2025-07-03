@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { AppBar, Box, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography, Button } from '@mui/material'
+import { AppBar, Box, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import DashboardIcon from '@mui/icons-material/Dashboard'
+import BuildCircleIcon from '@mui/icons-material/BuildCircle'
 import { DataGrid } from '@mui/x-data-grid'
 
 const drawerWidth = 240
@@ -17,6 +18,9 @@ function App() {
   const [salesData, setSalesData] = useState([])
   const [mobileOpen, setMobileOpen] = useState(false)
   const [page, setPage] = useState('dashboard')
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [newSale, setNewSale] = useState({ product: '', amount: '', region: '' })
+  const [adding, setAdding] = useState(false)
 
   useEffect(() => {
     // Check for an active session when the component mounts
@@ -69,6 +73,10 @@ function App() {
           <ListItemIcon><DashboardIcon /></ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItem>
+        <ListItem button selected={page === 'workflows'} onClick={() => setPage('workflows')}>
+          <ListItemIcon><BuildCircleIcon /></ListItemIcon>
+          <ListItemText primary="Workflows" />
+        </ListItem>
         <ListItem button selected={page === 'calendar'} onClick={() => setPage('calendar')}>
           <ListItemIcon><CalendarMonthIcon /></ListItemIcon>
           <ListItemText primary="Calendar" />
@@ -109,16 +117,62 @@ function App() {
   let mainContent
   if (page === 'dashboard') {
     mainContent = (
-      <Box sx={{ height: 400, width: '100%' }}>
-        <Typography variant="h5" gutterBottom>Sales Data</Typography>
+      <Box sx={{ height: 480, width: '100%' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" gutterBottom>Sales Data</Typography>
+          <Button variant="contained" onClick={() => setAddDialogOpen(true)}>Add Sale</Button>
+        </Box>
         <DataGrid
-          rows={salesData.map(row => ({ ...row, id: row.id }))}
+          rows={salesData.map(row => ({ ...row, id: row.product }))}
           columns={columns}
           pageSize={5}
           rowsPerPageOptions={[5, 10, 20]}
           disableSelectionOnClick
           sx={{ backgroundColor: 'white', borderRadius: 2 }}
         />
+        <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
+          <DialogTitle>Add New Sale</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Product"
+              fullWidth
+              value={newSale.product}
+              onChange={e => setNewSale({ ...newSale, product: e.target.value })}
+            />
+            <TextField
+              margin="dense"
+              label="Amount"
+              type="number"
+              fullWidth
+              value={newSale.amount}
+              onChange={e => setNewSale({ ...newSale, amount: e.target.value })}
+            />
+            <TextField
+              margin="dense"
+              label="Region"
+              fullWidth
+              value={newSale.region}
+              onChange={e => setNewSale({ ...newSale, region: e.target.value })}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddDialogOpen(false)} disabled={adding}>Cancel</Button>
+            <Button onClick={handleAddSale} variant="contained" disabled={adding || !newSale.product || !newSale.amount || !newSale.region}>
+              {adding ? 'Adding...' : 'Add'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    )
+  } else if (page === 'workflows') {
+    mainContent = (
+      <Box>
+        <Typography variant="h5" gutterBottom>Workflows (Coming Soon)</Typography>
+        <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5', borderRadius: 2 }}>
+          <Typography variant="body1">Workflows feature placeholder</Typography>
+        </Box>
       </Box>
     )
   } else if (page === 'calendar') {
@@ -139,6 +193,22 @@ function App() {
         </Box>
       </Box>
     )
+  }
+
+  async function handleAddSale() {
+    setAdding(true)
+    const { data, error } = await supabase.from('sales').insert([
+      { product: newSale.product, amount: Number(newSale.amount), region: newSale.region }
+    ])
+    setAdding(false)
+    if (error) {
+      console.error('Supabase insert error:', error)
+      alert('Error adding sale: ' + (error.message || JSON.stringify(error)))
+    } else {
+      setAddDialogOpen(false)
+      setNewSale({ product: '', amount: '', region: '' })
+      getSalesData()
+    }
   }
 
   return (
